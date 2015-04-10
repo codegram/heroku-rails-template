@@ -1,0 +1,61 @@
+source 'https://rubygems.org'
+
+ruby '2.2.1'
+
+gem 'rails'
+gem 'pg'
+gem 'rack-timeout'
+gem 'puma'
+gem 'foreman'
+
+gem 'oj'
+gem 'oj_mimic_json'
+
+gem 'slim'
+gem 'devise'
+gem 'devise-i18n'
+gem 'simple_form'
+gem 'sass-rails', '~> 4.0.3'
+gem 'jquery-rails'
+gem 'uglifier'
+gem 'high_voltage'
+
+gem 'rollout'
+gem 'rollbar'
+gem 'logarage'
+
+group :development do
+  gem 'spring'
+  gem 'spring-commands-rspec'
+  gem 'spring-commands-spinach'
+  gem 'guard'
+  gem 'guard-rspec', require: false
+  gem 'guard-spinach', require: false
+  gem 'rb-fsevent', require: false
+end
+
+group :development, :test do
+  gem 'awesome_print'
+  gem 'byebug'
+  gem 'dotenv-rails'
+  gem 'factory_girl_rails'
+  gem 'pry-rails'
+  gem 'rspec-rails'
+  gem 'quiet_assets'
+  gem 'letter_opener'
+end
+
+group :test do
+  gem 'capybara-webkit', '>= 1.2.0'
+  gem 'database_cleaner'
+  gem 'formulaic'
+  gem 'launchy'
+  gem 'webmock'
+  gem 'vcr'
+end
+
+group :production do
+  gem 'rails_12factor'
+  gem 'newrelic_rpm'
+  gem 'heroku-deflater'
+end

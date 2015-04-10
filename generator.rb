@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# 
+#
 # Heroku Rails Template Generator
 #
 # John Beynon
@@ -13,40 +13,27 @@ def source_paths
 end
 
 def copy_from_repo(filename, destination)
-  repo = 'https://raw.github.com/johnbeynon/heroku-rails-template/master/files/'
+  repo = 'https://raw.github.com/codegram/heroku-rails-template/master/files/'
   get repo + filename, destination
 end
 
-def rails4?
-  Rails::VERSION::MAJOR.to_s == "4"
+def inject_into_environment(rails_env, config)
+  inject_into_file( "config/environments/#{rails_env}.rb", "\n\n  #{config}", before: "\nend")
 end
 
 say 'Heroku Rails Application Generator'
 
-# Add Ruby 2.0 to Gemfile
-gsub_file 'Gemfile', /source 'https:\/\/rubygems.org'/, "source 'https://rubygems.org'\nruby '2.0.0'"
+copy_from_repo 'common/Gemfile', 'Gemfile'
 
-# Add Rack timeout
-gem 'rack-timeout'
-
-# Switch from Sqlite3 to Postgres
-gsub_file 'Gemfile', 'sqlite3', 'pg'
-
-# Switch to Unicorn
-gsub_file 'Gemfile', "# gem 'unicorn'", "gem 'unicorn'"
-
-gem_group :production do
-  gem 'rails_12factor'
-end
-
-# Add Unicorn config
-copy_from_repo 'common/config/unicorn.rb', 'config/unicorn.rb'
+# Add Puma config
+copy_from_repo 'common/config/puma.rb', 'config/puma.rb'
 
 # Add Rack::Timeout config
 copy_from_repo 'common/config/timeout.rb', 'config/initializers/timeout.rb'
 
 # Add newrelic.yml
-copy_from_repo 'common/config/newrelic.yml', 'config/newrelic.yml'
+copy_from_repo 'common/config/newrelic.yml.erb', 'config/newrelic.yml.erb'
+template 'config/newrelic.yml.erb', 'config/newrelic.yml.erb'
 
 # Add a Procfile
 copy_from_repo 'common/Procfile', 'Procfile'
@@ -54,32 +41,21 @@ copy_from_repo 'common/Procfile', 'Procfile'
 # Add a .env file for local environment variables
 copy_from_repo 'common/env', '.env'
 
-# Add .env_sample for sample local variables 
+# Add .env_sample for sample local variables
 copy_from_repo 'common/env_sample', '.env_sample'
 
 # Ensure local .env file is added to .gitignore
 run "echo '.env' >> .gitignore"
 
 # Remove database.yml
-remove_file 'config/database.yml'
-
 # Replace with postgres friendly database.yml for local development
-copy_from_repo 'common/config/database.yml', 'config/database.yml'
+remove_file 'config/database.yml'
+copy_from_repo 'common/config/database.yml.erb', 'config/database.yml.erb'
+template 'config/database.yml.erb', 'config/database.yml'
 
-# Replace development database name with one extracted from application name
-gsub_file "config/database.yml", /database: myapp_development/, "database: #{app_name.downcase}_development"
+lograge = <<-RUBY
 
-# Now do specific actions specfic to Rails version
-case Rails::VERSION::MAJOR.to_s
-when "3"
-  # Rails 3
-  environment 'config.assets.initialize_on_precompile = false'
-when "4"
-  # Rails 4
-  if Rails::VERSION::MINOR < 1
-    gem 'sprockets_better_errors'
-    application(nil, env: "development") do
-      'config.assets.raise_production_errors = true'
-    end
-  end
-end
+  config.lograge.enabled = true
+RUBY
+
+inject_into_environment('production', lograge)
